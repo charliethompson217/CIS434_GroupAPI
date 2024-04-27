@@ -48,8 +48,8 @@ public class Test {
 
         // searching for products that fit a description
         Dictionary<String, String> attributesToSearch = new Hashtable<>();
-        attributes.put("Category", "Electronics");
-        attributes.put("Name", "Phone");
+        attributesToSearch.put("Category", "Electronics");
+        attributesToSearch.put("Name", "Phone");
         ArrayList<Product> products = Product.search(attributesToSearch);
         for (Product product : products) {
             System.out.println(product.toString());
