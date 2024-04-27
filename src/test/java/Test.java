@@ -38,6 +38,12 @@ public class Test {
         User foundUser = User.search("johnDoe");
         System.out.println(foundUser.toString());
 
+        // return all users
+        Dictionary<String, String> attributes2 = new Hashtable<>();
+        ArrayList<User> users2 = User.search(attributes2);
+        for (User user : users2) {
+            System.out.println(user.toString());
+        }
 
 
         Product.createProduct("001", "Laptop", 1999, 10, "Electronics", "High-performance gaming laptop.");
@@ -58,6 +64,13 @@ public class Test {
         // search for a specific product
         Product product1 = Product.search("001");
         System.out.println(product1.toString());
+
+        // return all products
+        Dictionary<String, String> attributesToSearch2 = new Hashtable<>();
+        ArrayList<Product> products2 = Product.search(attributesToSearch2);
+        for (Product product : products2) {
+            System.out.println(product.toString());
+        }
 
         // delete a product
         Product product2 = Product.search("002");
