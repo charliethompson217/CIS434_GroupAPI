@@ -1,4 +1,4 @@
-package Backend;
+package backend;
 
 import java.io.File;
 import java.io.FileReader;
@@ -339,7 +339,7 @@ class CSVIO {
                 Enumeration enu = attributes.keys();
                 while(enu.hasMoreElements()) {
                     String key = (String) enu.nextElement();
-                    if(!rowData.get(key).equals(attributes.get(key))) {
+                    if(!rowData.get(key).toLowerCase().contains(attributes.get(key).toLowerCase())) {
                         continue search;
                     }
                 }

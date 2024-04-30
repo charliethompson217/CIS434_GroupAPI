@@ -1,5 +1,5 @@
-import Backend.Product;
-import Backend.User;
+import backend.Product;
+import backend.User;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -79,10 +79,10 @@ public class Test {
         product2.delete();
 
         // edit a product
-        product1.updateStock(15);
-        product1.updatePrice(799.99);
-        product1.updateName("Android Phone");
-        product1.updateCategory("Cellphone");
-        product1.updateDescription("Android smartphone with RCS.");
+        product1.setStock(15);
+        product1.setPrice(799.99);
+        product1.setName("Android Phone");
+        product1.setCategory("Cellphone");
+        product1.setDescription("Android smartphone with RCS.");
     }
 }

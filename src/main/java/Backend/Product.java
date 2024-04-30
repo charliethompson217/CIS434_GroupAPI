@@ -1,4 +1,4 @@
-package Backend;
+package backend;
 
 import com.opencsv.exceptions.CsvValidationException;
 
@@ -79,35 +79,35 @@ public class Product {
     }
 
     // Instance methods for modifying product details
-    public boolean updateStock(int newStockQuantity) {
+    public boolean setStock(int newStockQuantity) {
         if(update("StockQuantity", String.valueOf(newStockQuantity))){
             stockQuantity = newStockQuantity;
             return true;
         } else return false;
     }
 
-    public boolean updatePrice(double newPrice) {
+    public boolean setPrice(double newPrice) {
         if(update("Price", String.valueOf(newPrice))){
             price = newPrice;
             return true;
         } else return false;
     }
 
-    public boolean updateName(String newName) {
+    public boolean setName(String newName) {
         if(update("Name", newName)){
             this.name = newName;
             return true;
         } else return false;
     }
 
-    public boolean updateCategory(String newCategory) {
+    public boolean setCategory(String newCategory) {
         if(update("Category", newCategory)){
             this.category = newCategory;
             return true;
         } else return false;
     }
 
-    public boolean updateDescription(String newDescription) {
+    public boolean setDescription(String newDescription) {
         if(update("Description", newDescription)){
             this.description = newDescription;
             return true;

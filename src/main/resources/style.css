@@ -1,0 +1,104 @@
+.root {
+    -fx-font-family: 'Segoe UI', 'Arial';
+    -fx-base: #ffffff;
+}
+
+.button {
+    -fx-background-radius: 5;
+    -fx-background-color: #007bff;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 0);
+}
+
+.button:hover {
+    -fx-background-color: #0056b3;
+}
+
+.text-field, .password-field, .combo-box-base {
+    -fx-border-color: #D3D3D3;
+    -fx-border-radius: 5;
+    -fx-padding: 5;
+}
+
+.text-field:focused, .password-field:focused, .combo-box-base:focused {
+    -fx-border-color: #007bff;
+}
+
+.tab-pane {
+    -fx-background-color: #DDDDDD;
+}
+
+.table-view {
+    -fx-background-color: white;
+    -fx-table-cell-border-color: transparent;
+    -fx-table-header-border-color: #D3D3D3;
+}
+
+.table-view .column-header-background .column-header {
+    -fx-border-color: transparent transparent #D3D3D3 transparent;
+    -fx-background-color: #f4f4f4;
+}
+
+.table-view .table-cell {
+    -fx-border-color: transparent transparent transparent #D3D3D3;
+}
+
+.table-row-cell {
+    -fx-background-color: #f9f9f9, #ffffff;
+    -fx-background-insets: 0, 0 0 1 0;
+    -fx-text-fill: black;
+}
+
+.table-view .table-row-cell:even {
+    -fx-background-color: #f9f9f9;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #ffffff;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #007bff;
+    -fx-text-fill: black;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: #9cc8f7;
+}
+
+.table-view .table-row-cell:selected:hover {
+    -fx-background-color: #57a6fa;
+    -fx-text-fill: black;
+}
+
+
+.dialog-pane {
+    -fx-background-color: #F8F8F8;
+}
+
+.label {
+    -fx-text-fill: #333333;
+    -fx-font-size: 14px;
+}
+
+.grid-pane {
+    -fx-background-color: #F0F0F0;
+    -fx-padding: 10;
+    -fx-hgap: 10;
+    -fx-vgap: 10;
+}
+
+.vbox, .hbox {
+    -fx-spacing: 10;
+}
+
+.combo-box {
+    -fx-background-color: white;
+    -fx-mark-color: #007bff;
+}
+
+.context-menu {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #D3D3D3;
+}
