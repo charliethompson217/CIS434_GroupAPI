@@ -124,9 +124,27 @@ public class SceneBuilder extends Application {
         ));
         attributeSelector.setPromptText("Select attribute");
 
-        // Search field
+        // Search field for general search
         TextField searchField = new TextField();
         searchField.setPromptText("Enter search term");
+
+        // Additional fields for range search
+        TextField minField = new TextField();
+        minField.setPromptText("Min value");
+        TextField maxField = new TextField();
+        maxField.setPromptText("Max value");
+
+        // Hiding range fields initially
+        minField.setVisible(false);
+        maxField.setVisible(false);
+
+        // Listen for changes in attribute selection
+        attributeSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
+            boolean isRangeSearch = "Price".equals(newVal) || "Stock Quantity".equals(newVal) || "Product ID".equals(newVal);
+            minField.setVisible(isRangeSearch);
+            maxField.setVisible(isRangeSearch);
+            searchField.setVisible(!isRangeSearch);
+        });
 
         // Search button
         Button searchButton = new Button("Search");
@@ -135,25 +153,33 @@ public class SceneBuilder extends Application {
         TableView<Product> tableView = new TableView<>();
         setupProductTableView(tableView);  // This method sets up the columns for the table
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
         // Search button action
         searchButton.setOnAction(event -> {
-            String selectedAttribute = attributeSelector.getValue(); // Get the selected attribute
-            String searchText = searchField.getText(); // Get the search term from the TextField
-
-            // Prepare the search criteria based on selected attribute
-            Dictionary<String, String> attributes = new Hashtable<>();
-            if(!searchText.isEmpty())
-                attributes.put(selectedAttribute, searchText);
-
-            // Perform search and update table view
-            ArrayList<Product> products = Product.search(attributes);
-            ObservableList<Product> productData = FXCollections.observableArrayList(products);
-            tableView.setItems(productData); // Update TableView with new data
+            String selectedAttribute = attributeSelector.getValue();
+            if ("Price".equals(selectedAttribute) || "Stock Quantity".equals(selectedAttribute) || "Product ID".equals(selectedAttribute)) {
+                // Handle range search for price or stock
+                Double min = minField.getText().isEmpty() ? 0 : Double.valueOf(minField.getText());
+                Double max = maxField.getText().isEmpty() ? Double.MAX_VALUE : Double.valueOf(maxField.getText());
+                ArrayList<Product> products = Product.search(selectedAttribute, min, max);
+                ObservableList<Product> productData = FXCollections.observableArrayList(products);
+                tableView.setItems(productData);
+            } else {
+                // General search
+                String searchText = searchField.getText();
+                Dictionary<String, String> attributes = new Hashtable<>();
+                if(!searchText.isEmpty())
+                    attributes.put(selectedAttribute, searchText);
+                ArrayList<Product> products = Product.search(attributes);
+                ObservableList<Product> productData = FXCollections.observableArrayList(products);
+                tableView.setItems(productData);
+            }
         });
 
-        vbox.getChildren().addAll(new Label("Search by:"), attributeSelector, searchField, searchButton, tableView);
+        vbox.getChildren().addAll(new Label("Search by:"), attributeSelector, searchField, minField, maxField, searchButton, tableView);
         return vbox;
     }
+
 
     private void setupProductTableView(TableView<Product> tableView) {
         TableColumn<Product, String> idColumn = new TableColumn<>("Product ID");

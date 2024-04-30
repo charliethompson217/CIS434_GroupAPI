@@ -351,4 +351,35 @@ class CSVIO {
             throw e;
         }
     }
+
+    static ArrayList<Dictionary<String, String>> searchRange(String tableName, String attribute, double min, double max) throws IOException, CsvValidationException {
+        File tableFile = new File(System.getProperty("user.dir") + "/storage/" + tableName + ".csv");
+        if (!tableFile.exists()) {
+            System.out.println("Table " + tableName + " does not exist.");
+            return null;
+        }
+
+        try (CSVReader reader = new CSVReader(new FileReader(tableFile))) {
+            String[] header = reader.readNext();
+            if (header == null) {
+                System.out.println("Table " + tableName + " is missing headers or is corrupted.");
+                return null;
+            }
+            ArrayList<Dictionary<String, String>> items = new ArrayList<>();
+            String[] nextLine;
+            while ((nextLine = reader.readNext()) != null) {
+                Dictionary<String, String> rowData = new Hashtable<>();
+                for (int i = 0; i < header.length; i++) {
+                    rowData.put(header[i], nextLine[i]);
+                }
+                if (Double.parseDouble(rowData.get(attribute)) >= min && Double.parseDouble(rowData.get(attribute)) <= max)
+                    items.add(rowData);
+            }
+            return items;
+        } catch (IOException | CsvValidationException e) {
+            System.out.println("Failed to read table: " + tableName);
+            throw e;
+        }
+    }
+
 }
