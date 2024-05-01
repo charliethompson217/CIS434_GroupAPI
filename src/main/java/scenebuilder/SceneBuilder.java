@@ -101,8 +101,15 @@ public class SceneBuilder extends Application {
                 root.setCenter(newTab.getContent());
             }
         });
-
-        root.setTop(tabPane);
+        HBox hbox = new HBox();
+        Button logOut = new Button("Log Out");
+        logOut.setOnAction(e -> {
+            currentUser = null;
+            showLoginScreen(primaryStage);
+        });
+        hbox.getChildren().addAll(tabPane, logOut);
+        hbox.setId("tophbox");
+        root.setTop(hbox);
         // Initialize with first tab content
         root.setCenter(setupSearchProductsUI());
 
