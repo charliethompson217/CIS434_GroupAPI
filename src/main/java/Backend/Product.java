@@ -14,15 +14,16 @@ public class Product {
     private int stockQuantity;
     private String category;
     private String description;
-
+    private String database;
     // Private constructor to enforce the use of factory methods
-    private Product(String productID, String name, double price, int stockQuantity, String category, String description) {
+    private Product(String database, String productID, String name, double price, int stockQuantity, String category, String description) {
         this.productID = productID;
         this.name = name;
         this.price = price;
         this.stockQuantity = stockQuantity;
         this.category = category;
         this.description = description;
+        this.database = database;
     }
 
     // Getters
@@ -46,13 +47,13 @@ public class Product {
     }
 
     // Factory method for creating a product
-    public static Product createProduct(String productID, String name, double price, int stockQuantity, String category, String description) {
+    public static Product createProduct(String database, String productID, String name, double price, int stockQuantity, String category, String description) {
         try {
-            if(!createProductsTable()) {
+            if(!createProductsTable(database)) {
                 System.out.println("Creating product table failed");
                 return null;
             }
-            if (!CSVIO.itemExists("Products", productID)) {
+            if (!CSVIO.itemExists( database, "Products", productID)) {
                 Dictionary<String, String> attributes = new Hashtable<>();
                 attributes.put("Product ID", productID);
                 attributes.put("Name", name);
@@ -61,9 +62,9 @@ public class Product {
                 attributes.put("Category", category);
                 attributes.put("Description", description);
 
-                if (CSVIO.createRow("Products", attributes)) {
+                if (CSVIO.createRow(database, "Products", attributes)) {
                     System.out.println("Product successfully created.");
-                    return new Product(productID, name, price, stockQuantity, category, description);
+                    return new Product(database, productID, name, price, stockQuantity, category, description);
                 } else {
                     System.out.println("Failed to create product in CSV.");
                     return null;
@@ -121,7 +122,7 @@ public class Product {
         attributes.put(attribute, newValue);
 
         try {
-            return CSVIO.updateRow("Products", attributes);
+            return CSVIO.updateRow(database, "Products", attributes);
         } catch (IOException | CsvValidationException e) {
             System.out.println("Error updating product: " + e.getMessage());
             return false;
@@ -131,7 +132,7 @@ public class Product {
     // Method to delete a product
     public boolean delete() {
         try {
-            return CSVIO.deleteRow("Products", productID);
+            return CSVIO.deleteRow(database, "Products", productID);
         } catch (IOException | CsvValidationException e) {
             System.out.println("Error deleting product: " + e.getMessage());
             return false;
@@ -141,7 +142,8 @@ public class Product {
     @Override
     public String toString() {
         return "Product{" +
-                "Product ID='" + productID + '\'' +
+                "Database='" + database + '\'' +
+                ", Product ID='" + productID + '\'' +
                 ", Name='" + name + '\'' +
                 ", Price=" + price +
                 ", StockQuantity=" + stockQuantity +
@@ -151,48 +153,48 @@ public class Product {
     }
 
     // Static method to ensure the category table exists
-    private static boolean createProductsTable() throws IOException {
-        if (!CSVIO.tableExists("Products")) {
+    private static boolean createProductsTable(String database) throws IOException {
+        if (!CSVIO.tableExists(database, "Products")) {
             String[] header = {"Product ID", "Name", "Price", "Stock Quantity", "Category", "Description"};
-            return CSVIO.createTable("Products", header, "Product ID");
+            return CSVIO.createTable(database, "Products", header, "Product ID");
         }
         System.out.println("Products table already exists.");
         return true;
     }
-    public static ArrayList<Product> search(String attribute, double min, double max){
+    public static ArrayList<Product> search(String database, String attribute, double min, double max){
         try {
 
             ArrayList<Product> products = new ArrayList<>();
-            ArrayList<Dictionary<String, String>> items =  CSVIO.searchRange("Products", attribute, min, max);
+            ArrayList<Dictionary<String, String>> items =  CSVIO.searchRange(database, "Products", attribute, min, max);
             if(items == null)
                 return null;
             for (Dictionary<String, String> item : items) {
-                products.add(new Product(item.get("Product ID"), item.get("Name"), Double.parseDouble(item.get("Price")), Integer.parseInt(item.get("Stock Quantity")), item.get("Category"), item.get("Description")));
+                products.add(new Product(database, item.get("Product ID"), item.get("Name"), Double.parseDouble(item.get("Price")), Integer.parseInt(item.get("Stock Quantity")), item.get("Category"), item.get("Description")));
             }
             return products;
         } catch (IOException | CsvValidationException e){
             return null;
         }
     }
-    public static ArrayList<Product> search(Dictionary<String, String> attributes){
+    public static ArrayList<Product> search(String database, Dictionary<String, String> attributes){
         try {
             ArrayList<Product> products = new ArrayList<>();
-            ArrayList<Dictionary<String, String>> items =  CSVIO.search("Products", attributes);
+            ArrayList<Dictionary<String, String>> items =  CSVIO.search(database, "Products", attributes);
             if(items == null)
                 return null;
             for (Dictionary<String, String> item : items) {
-                products.add(new Product(item.get("Product ID"), item.get("Name"), Double.parseDouble(item.get("Price")), Integer.parseInt(item.get("Stock Quantity")), item.get("Category"), item.get("Description")));
+                products.add(new Product(database, item.get("Product ID"), item.get("Name"), Double.parseDouble(item.get("Price")), Integer.parseInt(item.get("Stock Quantity")), item.get("Category"), item.get("Description")));
             }
             return products;
         } catch (IOException | CsvValidationException e){
             return null;
         }
     }
-    public static Product search(String productID){
+    public static Product search(String database, String productID){
         try {
-            Dictionary<String, String> item =  CSVIO.getItem("Products", productID);
+            Dictionary<String, String> item =  CSVIO.getItem(database,"Products", productID);
             if(item != null)
-                return new Product(item.get("Product ID"), item.get("Name"), Double.parseDouble(item.get("Price")), Integer.parseInt(item.get("Stock Quantity")), item.get("Category"), item.get("Description"));
+                return new Product(database, item.get("Product ID"), item.get("Name"), Double.parseDouble(item.get("Price")), Integer.parseInt(item.get("Stock Quantity")), item.get("Category"), item.get("Description"));
             else return null;
         } catch (IOException | CsvValidationException e){
             return null;

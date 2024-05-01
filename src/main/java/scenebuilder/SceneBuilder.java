@@ -21,6 +21,7 @@ public class SceneBuilder extends Application {
 
     private BorderPane root;
     private static User currentUser;
+    private static String database;
 
     @Override
     public void start(Stage primaryStage) {
@@ -29,23 +30,29 @@ public class SceneBuilder extends Application {
     }
 
     private void showLoginScreen(Stage primaryStage) {
+        primaryStage.setTitle("Inventory App: Login");
         GridPane loginPane = new GridPane();
         loginPane.setAlignment(Pos.CENTER);
         loginPane.setPadding(new Insets(20));
         loginPane.setHgap(10);
         loginPane.setVgap(10);
-
+        TextField databaseFeild = new TextField();
+        databaseFeild.setPromptText("Database Name");
         TextField usernameField = new TextField();
         usernameField.setPromptText("Username");
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("Password");
+
         Button loginButton = new Button("Login");
+        Button createAccountButton = new Button("Create Account");
 
         loginButton.setOnAction(e -> {
             String username = usernameField.getText();
             String password = passwordField.getText();
-            currentUser = User.login(username, password);
+            String databaseName = databaseFeild.getText();
+            currentUser = User.login(databaseName, username, password);
             if (currentUser != null) {
+                database = databaseName;
                 showAlert(Alert.AlertType.INFORMATION, "Login Successful", "Welcome, " + currentUser.getUsername() + "!");
                 showMainInterface(primaryStage);
             } else {
@@ -53,11 +60,37 @@ public class SceneBuilder extends Application {
             }
         });
 
-        loginPane.add(new Label("Username:"), 0, 0);
-        loginPane.add(usernameField, 1, 0);
-        loginPane.add(new Label("Password:"), 0, 1);
-        loginPane.add(passwordField, 1, 1);
-        loginPane.add(loginButton, 1, 2);
+        createAccountButton.setOnAction(e -> {
+            String username = usernameField.getText();
+            String password = passwordField.getText();
+            String databaseName = databaseFeild.getText();
+            if(!User.isNewDatabase(databaseName)) {
+                currentUser = User.createUser(databaseName, username, password, "Admin");
+                if (currentUser != null) {
+                    database = databaseName;
+                    showAlert(Alert.AlertType.INFORMATION, "Account Creation Successful", "Welcome, " + currentUser.getUsername() + "!");
+                    showMainInterface(primaryStage);
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Account Creation Failed", "Username");
+                }
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Account Creation Failed", "Database Already Exists");
+            }
+        });
+
+        loginPane.add(new Label("Database:"), 0, 0);
+        loginPane.add(databaseFeild, 1, 0);
+
+        loginPane.add(new Label("Username:"), 0, 1);
+        loginPane.add(usernameField, 1, 1);
+
+        loginPane.add(new Label("Password:"), 0, 2);
+        loginPane.add(passwordField, 1, 2);
+
+        HBox hbox = new HBox();
+        hbox.getChildren().addAll(loginButton, createAccountButton);
+
+        loginPane.add(hbox, 1, 3);
 
         Scene scene = new Scene(loginPane, 300, 200);
         scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
@@ -66,7 +99,7 @@ public class SceneBuilder extends Application {
     }
 
     private void showMainInterface(Stage primaryStage) {
-        primaryStage.setTitle("Inventory App");
+        primaryStage.setTitle("Inventory App: "+ database);
         root = new BorderPane();
 
         TabPane tabPane = new TabPane();
@@ -105,6 +138,7 @@ public class SceneBuilder extends Application {
         Button logOut = new Button("Log Out");
         logOut.setOnAction(e -> {
             currentUser = null;
+            database = null;
             showLoginScreen(primaryStage);
         });
         hbox.getChildren().addAll(tabPane, logOut);
@@ -168,7 +202,7 @@ public class SceneBuilder extends Application {
                 // Handle range search for price or stock
                 Double min = minField.getText().isEmpty() ? 0 : Double.valueOf(minField.getText());
                 Double max = maxField.getText().isEmpty() ? Double.MAX_VALUE : Double.valueOf(maxField.getText());
-                ArrayList<Product> products = Product.search(selectedAttribute, min, max);
+                ArrayList<Product> products = Product.search(database, selectedAttribute, min, max);
                 ObservableList<Product> productData = FXCollections.observableArrayList(products);
                 tableView.setItems(productData);
             } else {
@@ -177,7 +211,7 @@ public class SceneBuilder extends Application {
                 Dictionary<String, String> attributes = new Hashtable<>();
                 if(!searchText.isEmpty())
                     attributes.put(selectedAttribute, searchText);
-                ArrayList<Product> products = Product.search(attributes);
+                ArrayList<Product> products = Product.search(database, attributes);
                 ObservableList<Product> productData = FXCollections.observableArrayList(products);
                 tableView.setItems(productData);
             }
@@ -319,7 +353,7 @@ public class SceneBuilder extends Application {
             if(!searchText.isEmpty())
                 attributes.put(selectedAttribute, searchText);
 
-            ArrayList<User> users = User.search(attributes);
+            ArrayList<User> users = User.search(database, attributes);
             ObservableList<User> userData = FXCollections.observableArrayList(users);
             tableView.setItems(userData);
         });
@@ -419,7 +453,7 @@ public class SceneBuilder extends Application {
             String password = passwordField.getText();
             String role = roleField.getText();
 
-            User newUser = User.createUser(username, password, role);
+            User newUser = User.createUser(database, username, password, role);
             if (newUser != null) {
                 showAlert(Alert.AlertType.INFORMATION, "User Added", "The user was successfully added!");
                 usernameField.clear();
@@ -463,6 +497,7 @@ public class SceneBuilder extends Application {
                 double price = Double.parseDouble(priceField.getText());
                 int stockQuantity = Integer.parseInt(stockQuantityField.getText());
                 Product newProduct = Product.createProduct(
+                        database,
                         String.valueOf(System.currentTimeMillis()),
                         nameField.getText(),
                         price,

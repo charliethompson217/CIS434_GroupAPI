@@ -13,81 +13,73 @@ import com.opencsv.exceptions.CsvValidationException;
 
 class CSVIO {
 
-    private static boolean createStorageDirectory() {
-        try {
-            final File CURRENT_DIRECTORY = new File(System.getProperty("user.dir"));
-            File storageDirectory = new File(CURRENT_DIRECTORY, "storage");
-            if (storageDirectory.exists()) {
-                System.out.println("Storage directory already exists.");
+    private static final String BASE_STORAGE_PATH = System.getProperty("user.dir") + "/Storage";
+
+    private static boolean createDirectory(String path) {
+        File directory = new File(BASE_STORAGE_PATH, path);
+        if (!directory.exists()) {
+            System.out.println(path + " directory does not exist. \nCreating directory...");
+            if (directory.mkdirs()) {
+                System.out.println("Created " + path + " directory.");
                 return true;
             } else {
-                System.out.println("Storage directory does not exist. \n Creating storage directory...");
-                if (storageDirectory.mkdir()) {
-                    System.out.println("Created storage directory.");
-                    return true;
-                } else {
-                    System.out.println("Failed to create storage directory.");
+                System.out.println("Failed to create " + path + " directory.");
+                return false;
+            }
+        } else {
+            System.out.println(path + " directory already exists.");
+            return true;
+        }
+    }
+
+    static boolean createTable(String databaseName, String tableName, String[] columns, String key) throws IOException {
+        String databasePath = databaseName;
+        if (!createDirectory(databasePath)) {
+            return false;
+        }
+        File tableFile = new File(BASE_STORAGE_PATH + "/" + databaseName + "/" + tableName + ".csv");
+        if (tableFile.createNewFile()) {
+            System.out.println("Table " + tableName + " created in " + databaseName + " database.");
+            try (CSVWriter writer = new CSVWriter(new FileWriter(tableFile))) {
+                LinkedList<String> headerList = new LinkedList<>();
+                boolean keySupplied = false;
+                for (String column : columns) {
+                    if (column.equals(key)) {
+                        // Ensure the key is the first in the list if required
+                        headerList.addFirst(column);
+                        keySupplied = true;
+                    } else {
+                        headerList.add(column);
+                    }
+                }
+                if (!keySupplied) {
+                    System.out.println("Key does not match any column for table: " + tableName + " in " + databaseName + " database.");
                     return false;
                 }
+                writer.writeNext(headerList.toArray(new String[0]));
+                System.out.println("Header data written to table " + tableName + " in " + databaseName + " database.");
+                return true;
+            } catch (IOException e) {
+                System.out.println("Failed to write header to table " + tableName + " in " + databaseName + " database.");
+                throw e;  // Re-throw IOException to be handled by caller
             }
-        } catch (SecurityException e) {
-            System.out.println("Permission denied to create storage directory.");
+        } else {
+            System.out.println("Table '" + tableName + "' already exists in " + databaseName + " database.");
             return false;
         }
     }
 
-    static boolean createTable(String tableName, String[] columns, String key) throws IOException {
-        try {
-            if (!createStorageDirectory()) {
-                return false;
-            }
-            File tableFile = new File(System.getProperty("user.dir") + "/storage/" + tableName + ".csv");
-            if (tableFile.createNewFile()) {
-                System.out.println("Table " + tableName + " created.");
-                try (CSVWriter writer = new CSVWriter(new FileWriter(tableFile))) {
-                    ArrayList<String> headerList = new ArrayList<String>();
-                    boolean keySupplied = false;
-                    for (String column : columns) {
-                        if (column.equals(key)) {
-                            // Ensure the key is the first in the list if required
-                            headerList.addFirst(column);
-                            keySupplied = true;
-                        } else {
-                            headerList.add(column);
-                        }
-                    }
-                    if (!keySupplied) {
-                        System.out.println("Key does not match any column for table: " + tableName);
-                        return false;
-                    }
-                    String[] headerArray = headerList.toArray(new String[0]);
-                    writer.writeNext(headerArray);
-                    System.out.println("Header data written to table.");
-                    return true;
-                } catch (IOException e) {
-                    System.out.println("Failed to write header to table " + tableName);
-                    throw e;  // Re-throw IOException to be handled by caller
-                }
-            } else {
-                System.out.println("Table '" + tableName + "' already exists.");
-                return false;
-            }
-        } catch (IOException e) {
-            throw e;  // Re-throw IOException to be handled by caller
-        }
-    }
-
-    static boolean createRow(String tableName, Dictionary<String, String> attributes) throws IOException, CsvValidationException {
-        File tableFile = new File(System.getProperty("user.dir") + "/storage/" + tableName + ".csv");
+    static boolean createRow(String databaseName, String tableName, Dictionary<String, String> attributes) throws IOException, CsvValidationException {
+        File tableFile = new File(BASE_STORAGE_PATH + "/" + databaseName + "/" + tableName + ".csv");
         if (!tableFile.exists()) {
-            System.out.println("Table " + tableName + " does not exist.");
+            System.out.println("Table '" + tableName + "' does not exist in " + databaseName + "database.");
             return false;
         }
 
         try (CSVReader reader = new CSVReader(new FileReader(tableFile))) {
             String[] header = reader.readNext();
             if (header == null) {
-                System.out.println("Table " + tableName + " is missing headers or corrupted.");
+                System.out.println("Table " + tableName + " in " + databaseName + " database is missing headers or corrupted.");
                 return false;
             }
 
@@ -125,17 +117,17 @@ class CSVIO {
         }
     }
 
-    static boolean updateRow(String tableName, Dictionary<String, String> attributes) throws IOException, CsvValidationException {
-        File tableFile = new File(System.getProperty("user.dir") + "/storage/" + tableName + ".csv");
+    static boolean updateRow(String databaseName, String tableName, Dictionary<String, String> attributes) throws IOException, CsvValidationException {
+        File tableFile = new File(BASE_STORAGE_PATH + "/" + databaseName + "/" + tableName + ".csv");
         if (!tableFile.exists()) {
-            System.out.println("Table " + tableName + " does not exist.");
+            System.out.println("Table '" + tableName + "' does not exist in " + databaseName + "database.");
             return false;
         }
 
         try (CSVReader reader = new CSVReader(new FileReader(tableFile))) {
             String[] header = reader.readNext();
             if (header == null) {
-                System.out.println("Table " + tableName + " is missing headers or corrupted.");
+                System.out.println("Table " + tableName + " in " + databaseName + " database is missing headers or corrupted.");
                 return false;
             }
 
@@ -185,17 +177,17 @@ class CSVIO {
         }
     }
 
-    static boolean deleteRow(String tableName, String keyValue) throws IOException, CsvValidationException {
-        File tableFile = new File(System.getProperty("user.dir") + "/storage/" + tableName + ".csv");
+    static boolean deleteRow(String databaseName, String tableName, String keyValue) throws IOException, CsvValidationException {
+        File tableFile = new File(BASE_STORAGE_PATH + "/" + databaseName + "/" + tableName + ".csv");
         if (!tableFile.exists()) {
-            System.out.println("Table " + tableName + " does not exist.");
+            System.out.println("Table '" + tableName + "' does not exist in " + databaseName + "database.");
             return false;
         }
 
         try (CSVReader reader = new CSVReader(new FileReader(tableFile))) {
             String[] header = reader.readNext();
             if (header == null) {
-                System.out.println("Table " + tableName + " is missing headers.");
+                System.out.println("Table " + tableName + " in " + databaseName + " database is missing headers or corrupted.");
                 return false;
             }
 
@@ -230,10 +222,10 @@ class CSVIO {
         }
     }
 
-    static boolean deleteTable(String tableName) throws IOException {
-        File tableFile = new File(System.getProperty("user.dir") + "/storage/" + tableName + ".csv");
+    static boolean deleteTable(String databaseName, String tableName) throws IOException {
+        File tableFile =  new File(BASE_STORAGE_PATH + "/" + databaseName + "/" + tableName + ".csv");
         if (!tableFile.exists()) {
-            System.out.println("Table " + tableName + " does not exist.");
+            System.out.println("Table '" + tableName + "' does not exist in " + databaseName + "database.");
             return false;
         }
 
@@ -246,22 +238,22 @@ class CSVIO {
         }
     }
 
-    static boolean tableExists(String tableName) {
-        File tableFile = new File(System.getProperty("user.dir") + "/storage/" + tableName + ".csv");
+    static boolean tableExists(String databaseName, String tableName) {
+        File tableFile =  new File(BASE_STORAGE_PATH + "/" + databaseName + "/" + tableName + ".csv");
         return tableFile.exists();
     }
 
-    static boolean itemExists(String tableName, String key) throws IOException, CsvValidationException {
-        File tableFile = new File(System.getProperty("user.dir") + "/storage/" + tableName + ".csv");
+    static boolean itemExists(String databaseName, String tableName, String key) throws IOException, CsvValidationException {
+        File tableFile =  new File(BASE_STORAGE_PATH + "/" + databaseName + "/" + tableName + ".csv");
         if (!tableFile.exists()) {
-            System.out.println("Table " + tableName + " does not exist.");
+            System.out.println("Table '" + tableName + "' does not exist in " + databaseName + "database.");
             return false;
         }
 
         try (CSVReader reader = new CSVReader(new FileReader(tableFile))) {
             String[] header = reader.readNext();
             if (header == null) {
-                System.out.println("Table " + tableName + " is missing headers or is corrupted.");
+                System.out.println("Table " + tableName + " in " + databaseName + " database is missing headers or corrupted.");
                 return false;
             }
             String keyColumnValue;
@@ -269,7 +261,7 @@ class CSVIO {
             while ((nextLine = reader.readNext()) != null) {
                 keyColumnValue = nextLine[0];  // Assuming the key is always in the first column
                 if (keyColumnValue != null && keyColumnValue.equals(key)) {
-                    System.out.println("An item with key '" + key + "' exists in table '" + tableName + "'.");
+                    System.out.println("An item with key '" + key + "' exists in table '" + tableName + "' in "+ databaseName + " database.");
                     return true;
                 }
             }
@@ -281,17 +273,17 @@ class CSVIO {
         return false;
     }
 
-    static Dictionary<String, String> getItem(String tableName, String keyValue) throws IOException, CsvValidationException {
-        File tableFile = new File(System.getProperty("user.dir") + "/storage/" + tableName + ".csv");
+    static Dictionary<String, String> getItem(String databaseName, String tableName, String keyValue) throws IOException, CsvValidationException {
+        File tableFile = new File(BASE_STORAGE_PATH + "/" + databaseName + "/" + tableName + ".csv");
         if (!tableFile.exists()) {
-            System.out.println("Table " + tableName + " does not exist.");
+            System.out.println("Table '" + tableName + "' does not exist in " + databaseName + "database.");
             return null;
         }
 
         try (CSVReader reader = new CSVReader(new FileReader(tableFile))) {
             String[] header = reader.readNext();
             if (header == null) {
-                System.out.println("Table " + tableName + " is missing headers or is corrupted.");
+                System.out.println("Table " + tableName + " in " + databaseName + " database is missing headers or corrupted.");
                 return null;
             }
 
@@ -314,17 +306,17 @@ class CSVIO {
         return null;
     }
 
-    static ArrayList<Dictionary<String, String>> search(String tableName, Dictionary<String, String> attributes) throws IOException, CsvValidationException {
-        File tableFile = new File(System.getProperty("user.dir") + "/storage/" + tableName + ".csv");
+    static ArrayList<Dictionary<String, String>> search(String databaseName, String tableName, Dictionary<String, String> attributes) throws IOException, CsvValidationException {
+        File tableFile = new File(BASE_STORAGE_PATH + "/" + databaseName + "/" + tableName + ".csv");
         if (!tableFile.exists()) {
-            System.out.println("Table " + tableName + " does not exist.");
+            System.out.println("Table '" + tableName + "' does not exist in " + databaseName + "database.");
             return null;
         }
 
         try (CSVReader reader = new CSVReader(new FileReader(tableFile))) {
             String[] header = reader.readNext();
             if (header == null) {
-                System.out.println("Table " + tableName + " is missing headers or is corrupted.");
+                System.out.println("Table " + tableName + " in " + databaseName + " database is missing headers or corrupted.");
                 return null;
             }
             ArrayList<Dictionary<String, String>> items = new ArrayList<>();
@@ -352,17 +344,17 @@ class CSVIO {
         }
     }
 
-    static ArrayList<Dictionary<String, String>> searchRange(String tableName, String attribute, double min, double max) throws IOException, CsvValidationException {
-        File tableFile = new File(System.getProperty("user.dir") + "/storage/" + tableName + ".csv");
+    static ArrayList<Dictionary<String, String>> searchRange(String databaseName, String tableName, String attribute, double min, double max) throws IOException, CsvValidationException {
+        File tableFile = new File(BASE_STORAGE_PATH + "/" + databaseName + "/" + tableName + ".csv");
         if (!tableFile.exists()) {
-            System.out.println("Table " + tableName + " does not exist.");
+            System.out.println("Table '" + tableName + "' does not exist in " + databaseName + "database.");
             return null;
         }
 
         try (CSVReader reader = new CSVReader(new FileReader(tableFile))) {
             String[] header = reader.readNext();
             if (header == null) {
-                System.out.println("Table " + tableName + " is missing headers or is corrupted.");
+                System.out.println("Table " + tableName + " in " + databaseName + " database is missing headers or corrupted.");
                 return null;
             }
             ArrayList<Dictionary<String, String>> items = new ArrayList<>();
