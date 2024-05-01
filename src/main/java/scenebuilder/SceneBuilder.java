@@ -89,6 +89,7 @@ public class SceneBuilder extends Application {
 
         HBox hbox = new HBox();
         hbox.getChildren().addAll(loginButton, createAccountButton);
+        hbox.setSpacing(10.0);
 
         loginPane.add(hbox, 1, 3);
 
